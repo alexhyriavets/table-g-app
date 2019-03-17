@@ -15,6 +15,9 @@
             >
               {{ title }}
             </th>
+            <th v-if="$scopedSlots.actions" class="a-table__th">
+              Action
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -29,6 +32,14 @@
               class="a-table__td"
             >
               {{ item }}
+            </td>
+            <td>
+              <slot
+                v-if="$scopedSlots.actions"
+                name="actions"
+                :row="row"
+                class="a-table__td"
+              />
             </td>
           </tr>
         </tbody>
@@ -131,13 +142,13 @@ export default {
           : prop(sortBy)
       }
 
-      const sortByFn = compose(
+      const getSortFn = compose(
         this.sortFn,
         getParsePropFn
       )
 
       const filterAndSortItems = compose(
-        sort(sortByFn(this.sortBy)),
+        sort(getSortFn(this.sortBy)),
         filter(includesSearchText(this.searchString)),
         prop('items')
       )
