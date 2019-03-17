@@ -61,7 +61,11 @@ import {
   ascend,
   sort,
   prop,
-  slice
+  slice,
+  head,
+  map,
+  toPairs,
+  replace
 } from 'ramda'
 
 const includesSearchText = searchText =>
@@ -71,6 +75,18 @@ const includesSearchText = searchText =>
     join('~'),
     values
   )
+
+const getColumnsKeysWithNumericValues = compose(
+  map(([k]) => k),
+  filter(([, v]) => !isNaN(v)),
+  toPairs
+)
+
+// const trace = msg => x => {
+//   console.log(msg, x)
+
+//   return x
+// }
 
 export default {
   name: 'ATable',
@@ -99,9 +115,25 @@ export default {
   },
   computed: {
     filteredItems() {
+      const columnsWithNumericValues = compose(
+        getColumnsKeysWithNumericValues,
+        head
+      )(this.data.items)
+
+      const getParsePropFn = sortBy => {
+        return includes(sortBy, columnsWithNumericValues)
+          ? compose(
+              x => x || -1,
+              Number.parseFloat,
+              replace(',', ''),
+              prop(sortBy)
+            )
+          : prop(sortBy)
+      }
+
       const sortByFn = compose(
         this.sortFn,
-        prop
+        getParsePropFn
       )
 
       const filterAndSortItems = compose(
